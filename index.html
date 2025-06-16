@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>Proyecto Basura Electrónica</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"/>
+<style>
+    /* Reset and basic */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #e0f2f1 0%, #a5d6a7 100%);
+      color: #2e7d32;
+      height: 100vh;
+      display: flex;
+      overflow: hidden;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    a:focus {
+      outline: 3px solid #81c784;
+      outline-offset: 2px;
+    }
+
+    /* Sidebar navigation - collapsed narrow by default */
+    nav {
+      width: 64px;
+      background: linear-gradient(180deg, #2e7d32 0%, #1b5e20 100%);
+      color: white;
+      position: fixed;
+      top: 60px; /* Below header */
+      left: 0;
+      bottom: 0;
+      overflow-y: auto;
+      box-shadow: 4px 0 12px rgba(0,0,0,0.15);
+      display: flex;
+      flex-direction: column;
+      z-index: 1000;
+      transition: width 0.3s ease;
+    }
+    nav:hover, nav:focus-within {
+      width: 240px;
+    }
+    nav ul {
+      padding: 8px 0;
+      margin: 0;
+      list-style: none;
+      flex-direction: column;
+      display: flex;
+      gap: 6px;
+      width: 100%;
+    }
+    nav ul li {
+      border-radius: 8px;
+      width: 100%;
+    }
+    /* Nav links: icon + label */
+    nav ul li a {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      font-weight: 600;
+      font-size: 1rem;
+      border-radius: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      cursor: pointer;
+      transition: background-color 0.3s ease, color 0.3s ease;
+      width: 100%;
+    }
+    /* Hide text label by default (width <= 64px) */
+    nav:not(:hover) ul li a span.label {
+      display: none;
+    }
+    /* Show label when nav hovered */
+    nav:hover ul li a span.label {
+      display: inline;
+    }
+    nav ul li a:hover,
+    nav ul li a:focus,
+    nav ul li a.active {
+      background-color: #81c784;
+      color: #1b5e20;
+      font-weight: 700;
+    }
+    nav ul li a .material-icons {
+      font-size: 24px;
+      min-width: 24px;
+      text-align: center;
+    }
+    /* Tooltip for icons when collapsed */
+    nav:not(:hover) ul li a {
+      position: relative;
+    }
+    nav:not(:hover) ul li a[aria-label]:hover::after,
+    nav:not(:hover) ul li a[aria-label]:focus::after {
+      content: attr(aria-label);
+      position: absolute;
+      left: 64px;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: #81c784;
+      color: #1b5e20;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      font-weight: 600;
+      font-size: 0.85rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      pointer-events: none;
+      z-index: 1001;
+    }
+
+    /* Header */
+    header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background-color: #388e3c;
+      color: white;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      font-weight: 800;
+      font-size: 1.5rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+      z-index: 1100;
+    }
+    header img {
+      height: 40px;
+      margin-right: 12px;
+      filter: drop-shadow(0 0 1px rgba(0,0,0,0.35));
+    }
+
+    /* Main content area: margin-left matches collapsed nav width plus small expansiones */
+    main {
+      margin-left: 64px;
+      margin-top: 60px;
+      padding: 32px 40px;
+      overflow-y: auto;
+      height: calc(100vh - 60px);
+      transition: margin-left 0.3s ease;
+    }
+    nav:hover ~ main,
+    nav:focus-within ~ main {
+      margin-left: 240px;
+    }
+
+    /* Sections styling */
+    section {
+      background: #ffffffcc;
+      padding: 24px 32px;
+      margin-bottom: 48px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+      backdrop-filter: saturate(180%) blur(8px);
+    }
+    h2 {
+      border-bottom: 4px solid #81c784;
+      padding-bottom: 12px;
+      margin-bottom: 24px;
+      font-weight: 800;
+      font-size: 2rem;
+    }
+    p {
+      font-weight: 500;
+      line-height: 1.65;
+      color: #3a5d36;
+      font-size: 1.1rem;
+    }
+
+    /* Juegos - container styles */
+    .game-container {
+      margin-top: 20px;
+    }
+    .game-container h3 {
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: #2e7d32;
+      font-size: 1.4rem;
+      text-align: center;
+    }
+    .game-container p.description {
+      margin-bottom: 16px;
+      font-weight: 600;
+      color: #4a7c48;
+      text-align: center;
+      font-size: 1rem;
+    }
+
+    /* Juego de la Víbora */
+    .center {
+      text-align: center;
+      padding: 20px;
+    }
+    canvas {
+      background-color: #e0ffe0;
+      display: block;
+      margin: auto;
+      border: 2px solid #4CAF50;
+    }
+
+    /* Resultado texto */
+    #resultado {
+      font-weight: 700;
+      text-align: center;
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: #1b5e20;
+      min-height: 1.4em;
+    }
+
+    /* Scrollbar para nav */
+    nav::-webkit-scrollbar {
+      width: 8px;
+    }
+    nav::-webkit-scrollbar-thumb {
+      background-color: #388e3c;
+      border-radius: 4px;
+    }
+    nav::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    /* Accessibility */
+    button, [role="button"] {
+      cursor: pointer;
+    }
+
+    /* Responsive behavior */
+    @media (max-width: 1000px) {
+      nav {
+        width: 48px;
+      }
+      nav:hover, nav:focus-within {
+        width: 200px;
+      }
+      main {
+        margin-left: 48px;
+        padding: 24px 20px;
+        transition: margin-left 0.3s;
+      }
+      nav:hover ~ main,
+      nav:focus-within ~ main {
+        margin-left: 200px;
+      }
+      header {
+        padding-left: 48px;
+        transition: padding-left 0.3s;
+      }
+      nav:hover + header,
+      nav:focus-within + header {
+        padding-left: 200px;
+      }
+    }
+    @media (max-width: 600px) {
+      nav {
+        width: 40px;
+      }
+      nav:hover, nav:focus-within {
+        width: 180px;
+      }
+      main {
+        margin-left: 40px;
+        padding: 20px 16px;
+        font-size: 0.9rem;
+      }
+      nav:hover ~ main,
+      nav:focus-within ~ main {
+        margin-left: 180px;
+      }
+      nav ul li a {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+      }
+      header {
+        padding-left: 40px;
+      }
+      nav:hover + header,
+      nav:focus-within + header {
+        padding-left: 180px;
+      }
+    }
+  
+.tema {
+  color: #1b5e20;
+  font-weight: bold;
+  font-size: 1.1rem;
+  margin-top: 12px;
+  display: block;
+}
+</style>
+</head>
+<body>
+<header>
+<img alt="Logotipo del Proyecto Basura Electrónica" src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/7e443bce-9e36-4217-8300-6ca6d086a38f.png"/>
+  Proyecto Basura Electrónica
+</header>
+<nav aria-label="Navegación principal" tabindex="0">
+<ul>
+<li><a aria-label="Introducción" class="active" href="#introduccion" tabindex="0"><span aria-hidden="true" class="material-icons">info</span><span class="label">Introducción</span></a></li>
+<li><a aria-label="Problemática" href="#problematica" tabindex="0"><span aria-hidden="true" class="material-icons">warning</span><span class="label">Problemática</span></a></li>
+<li><a aria-label="Importancia del Reciclaje" href="#importancia" tabindex="0"><span aria-hidden="true" class="material-icons">recycling</span><span class="label">Importancia del Reciclaje</span></a></li>
+<li><a aria-label="Tipos de Basura Electrónica" href="#tipos" tabindex="0"><span aria-hidden="true" class="material-icons">devices</span><span class="label">Tipos de Basura Electrónica</span></a></li>
+<li><a aria-label="Efectos en la Salud y Medio Ambiente" href="#efectos" tabindex="0"><span aria-hidden="true" class="material-icons">health_and_safety</span><span class="label">Efectos en la Salud y Medio Ambiente</span></a></li>
+<li><a aria-label="Soluciones" href="#soluciones" tabindex="0"><span aria-hidden="true" class="material-icons">lightbulb</span><span class="label">Soluciones</span></a></li>
+<li><a aria-label="Galería de Fotos" href="#galeria" tabindex="0"><span aria-hidden="true" class="material-icons">photo_library</span><span class="label">Galería de Fotos</span></a></li>
+<li><a aria-label="Juegos Educativos" href="#juegos" tabindex="0"><span aria-hidden="true" class="material-icons">sports_esports</span><span class="label">Juegos Educativos</span></a></li>
+</ul>
+</nav>
+<main>
+<section id="introduccion" tabindex="0">
+<h2>Introducción</h2>
+<p>La Basura Electrónica: Un Desafío del Siglo XXI
+En la era digital, la tecnología se ha vuelto una parte indispensable de nuestra vida cotidiana. Desde teléfonos inteligentes y computadoras hasta electrodomésticos inteligentes y dispositivos portátiles, dependemos cada vez más de la electrónica para comunicarnos, trabajar, entretenernos y gestionar nuestros hogares. Sin embargo, este rápido avance tecnológico trae consigo un problema creciente y silencioso: la basura electrónica, también conocida como e-waste o RAEE (Residuos de Aparatos Eléctricos y Electrónicos).
+A medida que los dispositivos electrónicos se vuelven obsoletos a un ritmo acelerado, ya sea por la aparición de nuevas versiones, fallas o simplemente por la obsolescencia programada, el volumen de residuos electrónicos se dispara. Este tipo de desecho no es como la basura común; contiene una compleja mezcla de materiales valiosos como metales preciosos, pero también sustancias tóxicas como plomo, mercurio y cadmio. Si no se gestiona adecuadamente, la basura electrónica representa una seria amenaza para el medio ambiente y la salud humana, contaminando el suelo, el agua y el aire, y afectando a comunidades enteras.
+En esta introducción, exploraremos la magnitud de este problema global, sus impactos y la urgente necesidad de implementar soluciones sostenibles para su manejo, desde el reciclaje responsable hasta la extensión de la vida útil de nuestros aparatos.</p>
+</section>
+<section id="problematica" tabindex="0">
+<h2>Problemática</h2>
+<p>La problemática de la basura electrónica es un desafío multifacético que abarca aspectos ambientales, de salud pública, económicos y sociales. A continuación, se detallan los puntos clave de esta compleja situación:</p>
+<span class="tema">1. Crecimiento Exponencial y Consumo Desmedido:</span>
+<p>* Obsolescencia programada y percibida: Los fabricantes diseñan productos con una vida útil limitada o con la intención de que se vuelvan "obsoletos" rápidamente debido a nuevas versiones, tecnologías o tendencias, lo que impulsa un ciclo de reemplazo constante.
+ * Aumento del consumo: La facilidad de acceso a la tecnología, los precios más bajos y las estrategias de marketing incentivan la compra impulsiva de nuevos dispositivos, sin considerar el destino de los antiguos.
+ * Volumen alarmante: A nivel global, y particularmente en países como México (tercer generador de e-waste en el continente americano y segundo en Latinoamérica), la cantidad de basura electrónica generada anualmente es astronómica, superando las capacidades de gestión. México, por ejemplo, genera alrededor de 1.5 millones de toneladas al año.</p>
+<span class="tema">2. Impactos Ambientales Severos:</span>
+<p>* Contaminación de suelos y agua: Los dispositivos electrónicos contienen metales pesados (plomo, mercurio, cadmio, cromo) y sustancias químicas tóxicas (PVC, retardantes de flama bromados). Cuando estos residuos terminan en rellenos sanitarios o tiraderos a cielo abierto, estas sustancias se filtran al suelo y a los cuerpos de agua, contaminando ecosistemas y afectando la biodiversidad.
+ * Contaminación del aire: La quema informal de basura electrónica, una práctica común para extraer metales valiosos, libera dioxinas, furanos y otras partículas tóxicas al aire, contribuyendo a la contaminación atmosférica y al cambio climático.
+ * Agotamiento de recursos naturales: La producción de nuevos dispositivos requiere la extracción de una gran cantidad de recursos naturales, muchos de ellos no renovables, lo que agrava la presión sobre el planeta.</p>
+<span class="tema">3. Riesgos para la Salud Humana:</span>
+<p>* Exposición a sustancias tóxicas: Las personas que manipulan la basura electrónica sin protección adecuada (frecuentemente en el sector informal) están expuestas directamente a los metales pesados y químicos peligrosos. Esto puede causar una amplia gama de problemas de salud, incluyendo enfermedades respiratorias, neurológicas, reproductivas, renales, cutáneas e incluso cáncer.
+ * Contaminación de la cadena alimentaria: Las toxinas liberadas al ambiente pueden ingresar a la cadena alimentaria, afectando a la población general a través del consumo de alimentos y agua contaminados.
+ * Impacto en comunidades vulnerables: Muchas veces, los vertederos informales y centros de desmantelamiento de e-waste se ubican cerca de comunidades de bajos ingresos, exponiendo a estas poblaciones a mayores riesgos.</p>
+<span class="tema">4. Deficiencias en la Gestión y Reciclaje:</span>
+<p>* Bajo porcentaje de reciclaje formal: A pesar del volumen generado, una ínfima parte de la basura electrónica se recicla de manera formal y adecuada. En México, se estima que solo el 4% de la basura electrónica se recicla correctamente.
+ * Mercado informal: Una gran parte de los residuos electrónicos es recolectada por el mercado informal ("chatarreros"), quienes desmantelan los aparatos para extraer componentes valiosos de forma rudimentaria y desechan el resto en tiraderos no controlados, exacerbando la contaminación.
+ * Falta de infraestructura y legislación: Muchos países, incluyendo México, carecen de la infraestructura suficiente para el acopio, desmantelamiento y reciclaje de la basura electrónica. Además, la normativa legal es a menudo insuficiente, poco clara o no se aplica eficazmente, lo que dificulta la implementación de programas de gestión integral y la asignación de responsabilidades a fabricantes y consumidores. La Ley General para la Prevención y Gestión Integral de los Residuos (LGPGIR) en México clasifica los RAEE como residuos de manejo especial, pero no establece responsabilidades claras, abriendo la puerta al mercado informal.
+ * Desconocimiento y falta de conciencia: Gran parte de la población desconoce los peligros de la basura electrónica y la importancia de desecharla correctamente, lo que lleva a que estos aparatos terminen en la basura común.</p>
+<span class="tema">5. Oportunidades Perdidas:</span>
+<p>* Pérdida de materiales valiosos: La basura electrónica es una "mina urbana" de metales preciosos (oro, plata, platino, paladio) y otros materiales recuperables (cobre, aluminio, plásticos). La falta de un reciclaje eficiente significa la pérdida de estos recursos, que podrían reintroducirse en la cadena de producción, reduciendo la necesidad de extracción de nuevos materiales.
+ * Potencial económico desaprovechado: Un sector de reciclaje de e-waste bien establecido y formalizado podría generar empleos y oportunidades de negocio, contribuyendo al desarrollo económico sostenible.
+En síntesis, la problemática de la basura electrónica es un reflejo de nuestro modelo de consumo lineal y un llamado urgente a transitar hacia una economía circular, donde los productos sean diseñados para durar, repararse y reciclarse eficientemente, minimizando su impacto ambiental y protegiendo la salud de las personas.
+.</p>
+</section>
+<section id="importancia" tabindex="0">
+<h2>Importancia del Reciclaje</h2>
+<p>Importancia de la Gestión de la Basura Electrónica
+La gestión adecuada de la basura electrónica es crucial en el siglo XXI, no solo por la cantidad masiva que generamos, sino por las múltiples implicaciones que tiene para el medio ambiente, la salud humana y la economía. Abordar este desafío no es una opción, sino una necesidad imperante para construir un futuro más sostenible.
+Protección Ambiental y Conservación de Recursos
+Uno de los pilares de la gestión de la basura electrónica es la prevención de la contaminación. Al evitar que estos residuos lleguen a tiraderos a cielo abierto o rellenos sanitarios, protegemos el suelo, el agua y el aire de la filtración de sustancias tóxicas como el plomo, el mercurio, el cadmio y el arsénico. La correcta disposición y el reciclaje minimizan la emisión de gases de efecto invernadero y la liberación de toxinas que dañan los ecosistemas y la biodiversidad.
+Además, la basura electrónica es una verdadera "mina urbana". Los dispositivos contienen metales preciosos (oro, plata, platino) y materiales valiosos (cobre, aluminio, plásticos de alta calidad) que, si se recuperan adecuadamente, pueden reintroducirse en el ciclo productivo. Esto reduce significativamente la necesidad de extraer nuevas materias primas de la Tierra, lo que a su vez disminuye la degradación ambiental asociada a la minería y el consumo de energía en los procesos de producción.
+Salvaguarda de la Salud Pública
+La exposición a los componentes tóxicos de la basura electrónica representa un grave riesgo para la salud. Un manejo irresponsable, especialmente el desmantelamiento informal o la quema, libera sustancias cancerígenas y neurotóxicas que pueden causar enfermedades respiratorias, neurológicas, reproductivas y cutáneas. La gestión adecuada garantiza que estos materiales sean procesados de manera segura, protegiendo a los trabajadores que manipulan los residuos y a las comunidades cercanas a los sitios de procesamiento. La correcta gestión de estos desechos es fundamental para prevenir problemas de salud pública a largo plazo.
+Impulso a la Economía Circular y Oportunidades Económicas
+La gestión de la basura electrónica es un pilar fundamental para transitar hacia una economía circular. En lugar de un modelo lineal de "extraer, usar y desechar", la economía circular promueve la reutilización, reparación y reciclaje de los productos. Esto no solo maximiza el valor de los materiales, sino que también fomenta la innovación en el diseño de productos más duraderos y fáciles de reciclar.
+Asimismo, el sector de reciclaje de e-waste genera oportunidades económicas significativas. El establecimiento de plantas de reciclaje especializadas, la creación de cadenas de recolección y el desarrollo de tecnologías para la recuperación de materiales pueden generar empleos y nuevas industrias. Esto convierte un problema ambiental en una fuente potencial de desarrollo económico sostenible y una reducción en la dependencia de la importación de materias primas.
+Responsabilidad Social y Legislación Efectiva
+Finalmente, la adecuada gestión de la basura electrónica es un reflejo de la responsabilidad social de individuos, empresas y gobiernos. Como consumidores, tenemos la responsabilidad de desechar nuestros aparatos electrónicos de forma correcta. Como empresas, existe la obligación de diseñar productos sostenibles y participar en su ciclo de vida post-consumo (responsabilidad extendida del productor). Los gobiernos, por su parte, deben establecer y aplicar marcos legales robustos que regulen la recolección, transporte, procesamiento y reciclaje de la basura electrónica, así como fomentar la educación y la concienciación pública.
+En resumen, darle la debida importancia a la gestión de la basura electrónica es una inversión en nuestro futuro. ¿Qué pasos crees que podríamos tomar para concientizar más a la población sobre este tema vital?
+.</p>
+</section>
+<section id="tipos" tabindex="0">
+<h2>Tipos de Basura Electrónica</h2>
+<p>Tipos de Basura Electrónica (RAEE)
+La basura electrónica, o Residuos de Aparatos Eléctricos y Electrónicos (RAEE), es una categoría muy amplia que abarca una gran diversidad de productos. Para facilitar su gestión y reciclaje, la basura electrónica se clasifica generalmente en varias categorías, basadas en su tamaño, uso y los materiales que contienen. Estas clasificaciones pueden variar ligeramente según la normativa de cada país, pero a nivel internacional, el criterio más común es el de la Directiva WEEE (Waste Electrical and Electronic Equipment) de la Unión Europea, que sirve de referencia global.
+A continuación, se presentan los tipos principales de basura electrónica, con ejemplos de cada uno:</p>
+<p>1. Grandes Electrodomésticos (Línea Blanca)
+Estos son los aparatos de mayor tamaño, utilizados principalmente en el hogar. Suelen contener una gran cantidad de metales y plásticos, y algunos pueden tener refrigerantes o aceites que requieren un manejo especial.
+ * Ejemplos:
+   * Refrigeradores (frigoríficos)
+   * Congeladores
+   * Lavadoras
+   * Secadoras de ropa
+   * Lavavajillas
+   * Estufas y hornos eléctricos
+   * Aparatos de aire acondicionado</p>
+<p>2. Pequeños Electrodomésticos
+Son aparatos de menor tamaño utilizados en el hogar y la oficina, que no requieren una instalación compleja.
+ * Ejemplos:
+   * Tostadoras
+   * Cafeteras
+   * Batidoras
+   * Aspiradoras
+   * Planchas
+   * Secadores de pelo
+   * Ventiladores
+   * Radiadores eléctricos portátiles</p>
+<p>3. Equipos de Informática y Telecomunicaciones
+Esta categoría incluye todos los dispositivos utilizados para el procesamiento de datos y la comunicación.
+ * Ejemplos:
+   * Computadoras de escritorio (PCs)
+   * Laptops (ordenadores portátiles)
+   * Tabletas
+   * Teléfonos móviles (celulares) y teléfonos fijos
+   * Impresoras, escáneres, copiadoras
+   * Servidores
+   * Monitores y pantallas (CRT, LCD, LED)
+   * Teclados y mouses (ratones)
+   * Routers y módems
+   * Discos duros externos
+   * Cámaras web</p>
+<p>4. Aparatos Electrónicos de Consumo y Paneles Fotovoltaicos
+Comprende equipos utilizados para entretenimiento y ocio, así como tecnologías de energía solar.
+ * Ejemplos:
+   * Televisores (CRT, LCD, LED, Plasma)
+   * Reproductores de DVD y Blu-ray
+   * Sistemas de sonido (estéreos, altavoces)
+   * Cámaras de fotos y videocámaras
+   * Consolas de videojuegos
+   * Radios
+   * Instrumentos musicales electrónicos
+   * Paneles solares fotovoltaicos</p>
+<p>5. Aparatos de Alumbrado
+Incluye diversas fuentes de luz y equipos relacionados.
+ * Ejemplos:
+   * Lámparas fluorescentes (tubos, compactas o "ahorradoras")
+   * Lámparas de descarga (ej. mercurio, sodio)
+   * Lámparas LED
+   * Equipos de iluminación no domésticos (luminarias industriales, alumbrado público)</p>
+<p>6. Herramientas Eléctricas y Electrónicas (excluidas las grandes herramientas industriales fijas)
+Todo tipo de herramientas que funcionan con electricidad o batería.
+ * Ejemplos:
+   * Taladros
+   * Sierras eléctricas
+   * Lijadoras
+   * Destornilladores eléctricos
+   * Cortadoras de césped eléctricas
+   * Soldadoras eléctricas</p>
+<p>7. Juguetes o Equipos Deportivos y de Tiempo Libre
+Juguetes y equipos con componentes eléctricos o electrónicos.
+ * Ejemplos:
+   * Coches teledirigidos
+   * Trenes eléctricos
+   * Drones de juguete
+   * Consolas portátiles de videojuegos
+   * Bicicletas eléctricas (a veces se clasifican aparte, o como movilidad eléctrica)
+   * Patinetes eléctricos (a veces se clasifican aparte, o como movilidad eléctrica)</p>
+<p>8. Aparatos Médicos (excluidos los productos implantados e infectados)
+Equipos utilizados en el sector de la salud.
+ * Ejemplos:
+   * Equipos de diálisis
+   * Aparatos de radioterapia
+   * Monitores cardíacos
+   * Termómetros electrónicos (algunos)</p>
+<p>9. Instrumentos de Vigilancia y Control
+Dispositivos que miden, controlan o regulan.
+ * Ejemplos:
+   * Detectores de humo
+   * Termostatos electrónicos
+   * Sistemas de seguridad (alarmas, cámaras de vigilancia)
+   * Sensores</p>
+<p>10. Distribuidores Automáticos
+Máquinas expendedoras que funcionan con electricidad.
+ * Ejemplos:
+   * Máquinas expendedoras de bebidas, alimentos, billetes, etc.
+Esta clasificación ayuda a los centros de reciclaje a organizar el desmantelamiento y el procesamiento, ya que cada tipo de RAEE puede requerir técnicas diferentes para la extracción segura de materiales y la eliminación de componentes peligrosos. Un adecuado conocimiento de estos tipos es el primer paso para una gestión responsable de la basura electrónica.
+.</p>
+</section>
+<section id="efectos" tabindex="0">
+<h2>Efectos en la Salud y Medio Ambiente</h2>
+<p>Efectos de la Basura Electrónica
+La acumulación y el manejo inadecuado de la basura electrónica tienen un sinfín de efectos negativos que repercuten directamente en nuestro entorno y en nuestra salud. Estos impactos se extienden desde la contaminación ambiental hasta problemas socioeconómicos, creando un ciclo preocupante que requiere atención urgente.</p>
+<p>1. Contaminación Ambiental
+Uno de los efectos más directos y devastadores de la basura electrónica es la contaminación ambiental. Muchos aparatos contienen una mezcla compleja de materiales valiosos y altamente tóxicos. Cuando estos dispositivos son desechados incorrectamente en rellenos sanitarios comunes o, peor aún, quemados en tiraderos informales, liberan sustancias peligrosas:
+ * Metales Pesados: Componentes como el plomo (en soldaduras y pantallas antiguas), el mercurio (en interruptores y lámparas), el cadmio (en baterías y pantallas LCD), el cromo y el níquel pueden filtrarse al suelo y las fuentes de agua subterránea. Esto contamina los ecosistemas, afectando la flora y fauna, y eventualmente puede llegar a nuestros alimentos y agua potable.
+ * Sustancias Químicas Tóxicas: Los plásticos bromados usados como retardantes de llama, las dioxinas y furanos (liberados al quemar plásticos con cloro), y los bifenilos policlorados (PCBs) son altamente persistentes en el ambiente. Estos químicos son disruptores endocrinos y carcinógenos, permaneciendo en el suelo y el agua por décadas.
+ * Contaminación Atmosférica: La quema de basura electrónica, una práctica común en el mercado informal para extraer metales, libera humos tóxicos y partículas finas a la atmósfera. Estos contaminantes contribuyen al smog, la lluvia ácida y el cambio climático, afectando la calidad del aire que respiramos.</p>
+<p>2. Impacto en la Salud Humana
+La exposición a los compuestos tóxicos presentes en la basura electrónica representa una seria amenaza para la salud humana, especialmente para aquellos que la manipulan sin protección:
+ * Problemas Respiratorios: La inhalación de humos y partículas finas de metales pesados y químicos orgánicos puede causar asma, bronquitis crónica y otras enfermedades pulmonares graves.
+ * Daño Neurológico: El plomo y el mercurio son neurotóxicos. La exposición puede llevar a problemas de desarrollo en niños, disminución del coeficiente intelectual, temblores, pérdida de memoria y otros trastornos neurológicos.
+ * Afecciones Renales y Hepáticas: El cadmio y el plomo pueden causar daño significativo a los riñones y al hígado, órganos vitales para la desintoxicación del cuerpo.
+ * Problemas Reproductivos: Algunos químicos, como los bifenilos policlorados, pueden afectar la fertilidad, causar abortos espontáneos y defectos congénitos.
+ * Cáncer: La exposición a sustancias como el cromo hexavalente, el cadmio, las dioxinas y los furanos está asociada con un mayor riesgo de desarrollar varios tipos de cáncer.
+ * Afecciones Cutáneas: El contacto directo con ciertos químicos puede provocar irritaciones, dermatitis y otras enfermedades de la piel.</p>
+<p>3. Agotamiento de Recursos Naturales
+El ciclo de "usar y tirar" de la electrónica fomenta la extracción continua de materias primas. La fabricación de nuevos dispositivos requiere una gran cantidad de recursos naturales, muchos de ellos no renovables, como:
+ * Metales: Oro, plata, cobre, aluminio, litio (en baterías), cobalto y tierras raras. La minería de estos materiales es un proceso intensivo en energía y agua, que a menudo conlleva deforestación, erosión del suelo y contaminación.
+ * Energía: La producción de un solo teléfono inteligente o computadora consume grandes cantidades de energía desde la extracción de las materias primas hasta el ensamblaje final, contribuyendo a la huella de carbono global.
+ * Agua: La minería y los procesos de fabricación son intensivos en el uso de agua, afectando la disponibilidad de este recurso vital en diversas regiones.</p>
+<p>4. Consecuencias Socioeconómicas
+Más allá de los impactos ambientales y de salud, la basura electrónica también tiene efectos socioeconómicos importantes:
+ * Economía Informal y Explotación: Gran parte del reciclaje de e-waste en países en desarrollo ocurre en el sector informal, donde los trabajadores, a menudo niños, están expuestos a condiciones laborales peligrosas y a salarios ínfimos. Esto perpetúa la pobreza y la desigualdad.
+ * Pérdida de Valor Económico: Al no reciclarse adecuadamente, se pierden millones de dólares en materiales valiosos que podrían ser reutilizados. Esto representa una oportunidad económica perdida y un costo para la sociedad que debe seguir extrayendo y procesando recursos vírgenes.
+ * Brecha Digital: Si bien no es un efecto directo de la basura electrónica en sí, la rápida obsolescencia contribuye a que el acceso a la tecnología sea efímero para muchas poblaciones, exacerbando la brecha digital y la exclusión.
+En resumen, los efectos de la basura electrónica son un recordatorio contundente de que nuestro consumo tecnológico no es inofensivo. Comprender estos impactos es el primer paso para buscar soluciones efectivas y responsables que nos permitan avanzar hacia un futuro más sostenible.
+.</p>
+</section>
+<section id="soluciones" tabindex="0">
+<h2>Soluciones</h2>
+<p>Abordar la problemática de la basura electrónica requiere un enfoque multifacético que involucre a todos los actores de la sociedad: gobiernos, fabricantes, consumidores y el sector privado. A continuación, se presentan las principales soluciones, divididas por los roles de los involucrados:</p>
+<p>1. Responsabilidad de los Fabricantes y Distribuidores (Responsabilidad Extendida del Productor - REP)
+ * Diseño Ecológico (Ecodiseño): Fomentar y legislar que los fabricantes diseñen productos pensando en su ciclo de vida completo. Esto incluye:
+   * Modularidad: Crear aparatos con componentes que puedan ser fácilmente reemplazados o actualizados.
+   * Durabilidad: Fabricar productos más resistentes y con mayor vida útil.
+   * Reparabilidad: Facilitar el acceso a piezas de repuesto, manuales de reparación y herramientas, y evitar el uso de adhesivos permanentes o diseños que impidan la reparación.
+   * Reciclabilidad: Utilizar materiales reciclados o fácilmente reciclables, y evitar sustancias tóxicas.
+ * Programas de Recolección y Reciclaje: Los fabricantes deben asumir la responsabilidad de recolectar y reciclar los productos al final de su vida útil. Esto puede ser a través de:
+   * Sistemas de devolución: Puntos de recolección en tiendas o centros de servicio.
+   * Esquemas de financiación: Contribuir a fondos que apoyen la infraestructura de reciclaje.
+   * Certificaciones y sellos: Promover el uso de sellos que indiquen que un producto ha sido diseñado con criterios de sostenibilidad.
+ * Servicios de Actualización y Mantenimiento: Ofrecer opciones para actualizar el software o hardware de los dispositivos para prolongar su vida útil, en lugar de incentivar la compra de un nuevo aparato.</p>
+<p>2. Rol de los Gobiernos y Legislación
+ * Marco Legal Robusto: Implementar y fortalecer leyes específicas sobre la gestión de RAEE que incluyan:
+   * Responsabilidad Extendida del Productor (REP) obligatoria: Que los fabricantes se hagan cargo del coste y la logística del reciclaje.
+   * Metas#f4ffaa de Recolección y Reciclaje: Establecer objetivos claros y alcanzables para la recolección y el porcentaje de reciclaje.
+   * Prohibición de sustancias peligrosas: Restringir el uso de químicos tóxicos en la fabricación de electrónicos.
+   * Incentivos fiscales: Ofrecer beneficios a empresas que reciclen o produzcan de forma sostenible, y quizás impuestos a productos menos amigables con el ambiente.
+ * Infraestructura de Recolección y Reciclaje: Invertir en y facilitar la creación de centros de acopio y plantas de reciclaje de alta tecnología para garantizar un procesamiento seguro y eficiente de los RAEE.
+   * Ejemplo en México: Programas como el Reciclatrón en la Ciudad de México son un buen inicio, ofreciendo jornadas de acopio gratuitas, pero se necesita expandir su alcance y frecuencia a nivel nacional y generar centros de acopio permanentes.
+ * Regulación del Mercado Informal: Combatir las prácticas de reciclaje informal y peligroso a través de:
+   * Inspección y sanciones: Mayor vigilancia y multas para quienes dispongan o reciclen RAEE de forma ilegal.
+   * Formalización y capacitación: Ofrecer oportunidades para que los trabajadores del sector informal se integren en un sistema de reciclaje formal y seguro, brindando capacitación y herramientas.
+ * Fomento de la Investigación y Desarrollo: Apoyar la innovación en tecnologías de reciclaje más eficientes y en la creación de nuevos materiales sostenibles.</p>
+<p>3. Conciencia y Acciones de los Consumidores
+ * Consumo Responsable:
+   * Priorizar la Durabilidad: Elegir productos de mayor calidad y durabilidad, aunque sean más caros inicialmente.
+   * Pensar antes de Comprar: Evaluar si realmente se necesita un nuevo dispositivo o si el actual puede repararse o actualizarse.
+   * Menos es Más: Reducir la cantidad de dispositivos que se poseen y utilizan.
+ * Extender la Vida Útil de los Dispositivos:
+   * Reutilización: Donar, vender o regalar aparatos electrónicos que aún funcionan pero ya no se necesitan (por ejemplo, a escuelas o centros comunitarios).
+   * Reparación: Buscar servicios de reparación certificados antes de desechar un aparato. Apoyar iniciativas de "derecho a reparar".
+   * Actualizaciones: Mantener el software actualizado y considerar la posibilidad de actualizar componentes de hardware cuando sea viable.
+ * Descarte Adecuado:
+   * Utilizar Puntos de Acopio: Llevar los RAEE a centros de acopio especializados, programas como el Reciclatrón, o puntos de devolución ofrecidos por tiendas y fabricantes.
+   * No mezclar con la Basura Común: Nunca tirar la basura electrónica a la basura doméstica, ya que esto garantiza que termine en un relleno sanitario.
+ * Información y Sensibilización: Informarse sobre los impactos de la basura electrónica y educar a otros sobre la importancia de su manejo adecuado.</p>
+<p>4. Iniciativas del Sector Privado y la Sociedad Civil
+ * Empresas de Reciclaje Especializadas: Desarrollar y expandir empresas dedicadas al reciclaje seguro y eficiente de RAEE, utilizando tecnologías que recuperen materiales valiosos y gestionen los tóxicos.
+ * ONGs y Campañas de Concientización: Organizar campañas, talleres y eventos para educar al público y recolectar RAEE.
+ * Modelos de Negocio Innovadores: Fomentar empresas que se basen en la economía circular, como servicios de alquiler de equipos electrónicos, plataformas de intercambio de productos usados, o empresas de remanufactura.
+ * Certificaciones y Estándares: Promover estándares de reciclaje y manejo de RAEE que aseguren procesos ambientalmente adecuados.</p>
+<p>En México, aunque existen marcos legales como la Ley General para la Prevención y Gestión Integral de los Residuos (LGPGIR) que clasifica los RAEE como residuos de manejo especial, y programas como el Reciclatrón, aún falta una política nacional específica y fuerte que establezca responsabilidades claras para fabricantes y distribuidores, y que incentive la infraestructura de reciclaje a gran escala. La solución a la basura electrónica es un esfuerzo colectivo que requiere un compromiso a largo plazo de todos los sectores para transformar nuestro modelo de consumo y producción en uno más circular y sostenible.</p>
+</section>
+<section aria-label="Galería de imágenes sobre basura electrónica" id="galeria" tabindex="0">
+<h2>Galería de Fotos</h2>
+<div id="galeria">
+<figure tabindex="0">
+<img height="300" src="file:///E:/FINAL1/IMG-20250609-WA0017.jpg" width="500"/>
+<img height="300" src="file:///E:/FINAL1/IMG-20250609-WA0018.jpg" width="500"/>
+<img height="300" src="file:///E:/FINAL1/IMG-20250609-WA0019.jpg" width="500"/>
+<img height="300" src="file:///E:/FINAL1/IMG-20250609-WA0019.jpg" width="500"/>
+<img height="300" src="file:///E:/FINAL1/IMG-20250609-WA0022.jpg" width="500"/>
+<img height="300" src="file:///E:/FINAL1/IMG-20250609-WA0024.jpg" width="500"/>
+</figure>
+</div>
+</section>
+<section id="juegos" tabindex="0">
+<h2>Juegos Educativos</h2>
+<div aria-label="Juego de la Víbora Recicladora" class="game-container">
+<h3>Juego: La Víbora Recicladora</h3>
+<p>Usa las flechas para mover la víbora y recolectar basura reciclable (verde). ¡Evita la basura peligrosa (roja)!</p>
+<div class="center">
+<canvas height="400" id="gameCanvas" width="400"></canvas>
+<p id="score">Puntos: 0</p>
+</div>
+</div>
+<section id="juego-clasificacion" tabindex="0">
+<h2>Juego Educativo: Clasifica la Basura Electrónica</h2>
+<div aria-label="Juego de Clasificación de Basura Electrónica" class="game-container">
+<h3>Juego: Arrastra y Clasifica</h3>
+<p class="description">Arrastra cada objeto al contenedor correcto: basura electrónica ♻️ o basura común 🗑️.</p>
+<div id="drag-game" style="display: flex; flex-direction: column; align-items: center; margin-top: 20px;">
+<div id="items" style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 20px; justify-content: center;">
+<img alt="Laptop rota" class="draggable" data-type="e" draggable="true" height="80" src="file:///E:/FINAL1/im12.png" width="80"/>
+<img alt="Celular viejo" class="draggable" data-type="e" draggable="true" height="80" src="file:///E:/FINAL1/im88.jpg" width="80"/>
+<img alt="Cable cargador" class="draggable" data-type="e" draggable="true" height="80" src="file:///E:/FINAL1/im99.png" width="80"/>
+<img alt="Batería usada" class="draggable" data-type="e" draggable="true" height="80" src="file:///E:/FINAL1/im62.png" width="80"/>
+<img alt="Manzana" class="draggable" data-type="n" draggable="true" height="80" src="file:///E:/FINAL1/fr44.jfif" width="80"/>
+<img alt="Botella de agua" class="draggable" data-type="n" draggable="true" height="80" src="file:///E:/FINAL1/ag75.jfif" width="80"/>
+<img alt="Cáscara de plátano" class="draggable" data-type="n" draggable="true" height="80" src="file:///E:/FINAL1/pp96.jpg" width="80"/>
+</div>
+<div style="display: flex; gap: 60px;">
+<div data-accept="e" id="contenedor-electronica" ondragover="allowDrop(event)" ondrop="drop(event)" style="width: 200px; height: 200px; border: 2px dashed green; display: flex; align-items: center; justify-content: center;">
+          ♻️ Electrónica
+        </div>
+<div data-accept="n" id="contenedor-normal" ondragover="allowDrop(event)" ondrop="drop(event)" style="width: 200px; height: 200px; border: 2px dashed red; display: flex; align-items: center; justify-content: center;">
+          🗑️ Común
+        </div>
+</div>
+<p id="resultado-juego" style="font-weight: bold; margin-top: 20px;"></p>
+</div>
+</div>
+</section>
+</section>
+</main>
+
+
+
+
+<footer>
+<br>
+<br>
+<p>¿Sabías que un solo teléfono puede contiene hasta 60 elementos de la tabla periódica, incluyendo metales como oro, plata y paladio?
+Estos recursos se desechan cuando los teléfonos se tiran en la basura convirtiendo no solo en desechos o un problema ambiental, sino también en una mina urbana desaprovechada. ¡Reciclar es crucial para recuperar estos materiales!
+.</p>
+<br>
+<br>
+</footer>
+
+<script>
+function allowDrop(ev) {
+  ev.preventDefault();
+}
+
+document.querySelectorAll('.draggable').forEach(el => {
+  el.addEventListener('dragstart', function(ev) {
+    ev.dataTransfer.setData('text/plain', ev.target.getAttribute('data-type') + ',' + ev.target.alt);
+    ev.dataTransfer.setDragImage(ev.target, 40, 40);
+  });
+});
+
+function drop(ev) {
+  ev.preventDefault();
+  const [tipo, nombre] = ev.dataTransfer.getData("text/plain").split(",");
+  const contenedor = ev.currentTarget;
+  const tipoCorrecto = contenedor.getAttribute("data-accept");
+  const mensaje = document.getElementById("resultado-juego");
+
+  if (tipo === tipoCorrecto) {
+    mensaje.textContent = `✔️ ¡Correcto! ${nombre} está bien clasificado.`;
+    mensaje.style.color = "green";
+  } else {
+    mensaje.textContent = `❌ ¡Incorrecto! ${nombre} no pertenece aquí.`;
+    mensaje.style.color = "red";
+  }
+}
+</script>
+</body></html><script>const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+let box = 20;
+let snake = [{ x: 9 * box, y: 10 * box }];
+let direction = null;
+let score = 0;
+
+let recyclable = {
+  x: Math.floor(Math.random() * 19) * box,
+  y: Math.floor(Math.random() * 19) * box
+};
+
+let danger = {
+  x: Math.floor(Math.random() * 19) * box,
+  y: Math.floor(Math.random() * 19) * box
+};
+
+document.addEventListener("keydown", dir);
+
+function dir(event) {
+  if (event.keyCode == 37 && direction !== "RIGHT") direction = "LEFT";
+  else if (event.keyCode == 38 && direction !== "DOWN") direction = "UP";
+  else if (event.keyCode == 39 && direction !== "LEFT") direction = "RIGHT";
+  else if (event.keyCode == 40 && direction !== "UP") direction = "DOWN";
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < snake.length; i++) {
+    ctx.fillStyle = (i === 0) ? "green" : "lightgreen";
+    ctx.fillRect(snake[i].x, snake[i].y, box, box);
+  }
+
+  ctx.fillStyle = "lime";
+  ctx.fillRect(recyclable.x, recyclable.y, box, box);
+
+  ctx.fillStyle = "red";
+  ctx.fillRect(danger.x, danger.y, box, box);
+
+  let headX = snake[0].x;
+  let headY = snake[0].y;
+
+  if (direction === "LEFT") headX -= box;
+  if (direction === "UP") headY -= box;
+  if (direction === "RIGHT") headX += box;
+  if (direction === "DOWN") headY += box;
+
+  if (headX === recyclable.x && headY === recyclable.y) {
+    score++;
+    recyclable = {
+      x: Math.floor(Math.random() * 19) * box,
+      y: Math.floor(Math.random() * 19) * box
+    };
+  } else {
+    snake.pop();
+  }
+
+  if (headX === danger.x && headY === danger.y) {
+    clearInterval(game);
+    alert("¡Perdiste! Tocaste basura peligrosa. Puntaje final: " + score);
+    location.reload();
+  }
+
+  let newHead = { x: headX, y: headY };
+
+  if (
+    headX < 0 || headX >= canvas.width || headY < 0 || headY >= canvas.height ||
+    snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)
+  ) {
+    clearInterval(game);
+    alert("¡Perdiste! Puntaje final: " + score);
+    location.reload();
+  }
+
+  snake.unshift(newHead);
+  document.getElementById("score").textContent = "Puntos: " + score;
+}
+
+let game = setInterval(draw, 150);</script>
